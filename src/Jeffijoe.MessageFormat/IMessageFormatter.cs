@@ -26,7 +26,7 @@ namespace Jeffijoe.MessageFormat
         /// <returns>
         ///     The <see cref="string" />.
         /// </returns>
-        string FormatMessage(string pattern, IDictionary<string, object> argsMap);
+        string FormatMessage(string pattern, IDictionary<string, object> argsMap, bool ignoreMissingArgs = false);
 
         /// <summary>
         ///     Formats the message, and uses reflection to create a dictionary of property values from the specified object.
@@ -40,7 +40,7 @@ namespace Jeffijoe.MessageFormat
         /// <returns>
         ///     The <see cref="string" />.
         /// </returns>
-        string FormatMessage(string pattern, object args);
+        string FormatMessage(string pattern, object args, bool ignoreMissingArgs = false);
 
         #endregion
     }

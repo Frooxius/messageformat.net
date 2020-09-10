@@ -59,7 +59,7 @@ namespace Jeffijoe.MessageFormat.Tests.Formatting.Formatters
         {
             var subject = new SelectFormatter();
             var messageFormatterMock = new Mock<IMessageFormatter>();
-            messageFormatterMock.Setup(x => x.FormatMessage(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+            messageFormatterMock.Setup(x => x.FormatMessage(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), false))
                                 .Returns((string input, Dictionary<string, object> a) => input);
             var req = new FormatterRequest(
                 new Literal(1, 1, 1, 1, new StringBuilder()), 

@@ -178,11 +178,11 @@ namespace Jeffijoe.MessageFormat
         /// <returns>
         ///     The formatted message.
         /// </returns>
-        public static string Format(string pattern, IDictionary<string, object> data)
+        public static string Format(string pattern, IDictionary<string, object> data, bool ignoreMissingArgs = false)
         {
             lock (Lock)
             {
-                return Instance.FormatMessage(pattern, data);
+                return Instance.FormatMessage(pattern, data, ignoreMissingArgs);
             }
         }
 
@@ -202,11 +202,11 @@ namespace Jeffijoe.MessageFormat
         /// <returns>
         ///     The formatted message.
         /// </returns>
-        public static string Format(string pattern, object data)
+        public static string Format(string pattern, object data, bool ignoreMissingArgs = false)
         {
             lock (Lock)
             {
-                return Instance.FormatMessage(pattern, data);
+                return Instance.FormatMessage(pattern, data, ignoreMissingArgs);
             }
         }
 
@@ -222,7 +222,7 @@ namespace Jeffijoe.MessageFormat
         /// <returns>
         ///     The <see cref="string" />.
         /// </returns>
-        public string FormatMessage(string pattern, IDictionary<string, object> args)
+        public string FormatMessage(string pattern, IDictionary<string, object> args, bool ignoreMissingArgs = false)
         {
             /*
              * We are asuming the formatters are ordered correctly
@@ -243,10 +243,12 @@ namespace Jeffijoe.MessageFormat
             {
                 var request = requestsEnumerated[i];
 
-                object value;
-                if (args.TryGetValue(request.Variable, out value) == false)
+                if (!args.TryGetValue(request.Variable, out object value))
                 {
-                    throw new VariableNotFoundException(request.Variable);
+                    if (!ignoreMissingArgs)
+                        throw new VariableNotFoundException(request.Variable);
+                    else
+                        value = "";
                 }
 
                 var formatter = this.Formatters.GetFormatter(request);
@@ -290,9 +292,9 @@ namespace Jeffijoe.MessageFormat
         /// <returns>
         ///     The <see cref="string" />.
         /// </returns>
-        public string FormatMessage(string pattern, object args)
+        public string FormatMessage(string pattern, object args, bool ignoreMissingArgs = false)
         {
-            return this.FormatMessage(pattern, args.ToDictionary());
+            return this.FormatMessage(pattern, args.ToDictionary(), ignoreMissingArgs);
         }
 
         #endregion

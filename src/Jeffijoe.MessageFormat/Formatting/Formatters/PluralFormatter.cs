@@ -269,23 +269,35 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
         /// </summary>
         private void AddStandardPluralizers()
         {
-            this.Pluralizers.Add(
-                "en",
-                n => {
-                    // ReSharper disable CompareOfFloatsByEqualityOperator
-                    if (n == 0)
-                    {
-                        return "zero";
-                    }
+            AddPluralizer(n => n == 1 ? "one" : "other", "ast ca de en et fi fy gl ia io it ji lij nl pt_PT sc scn sv sw ur yi");
 
-                    if (n == 1)
-                    {
-                        return "one";
-                    }
+            AddPluralizer(n => "other", "bm bo dz id ig ii in ja jbo jv jw kde kea km ko lkt lo ms my nqo osa root sah ses sg su th to vi wo yo yue zh");
 
-                    // ReSharper restore CompareOfFloatsByEqualityOperator
-                    return "other";
-                });
+            AddPluralizer(n =>
+            {
+                var i = (int)n;
+
+                var frac = (n - i);
+
+                if (frac > 1e-8)
+                    return "many";
+
+                if (i == 1)
+                    return "one";
+
+                if (i >= 2 && i <= 4)
+                    return "few";
+
+                return "other";
+
+            }, "cs sk");
+        }
+
+        void AddPluralizer(Pluralizer pluralizer, string locales)
+        {
+            foreach(var locale in locales.Split(' '))
+                if(!string.IsNullOrWhiteSpace(locale))
+                    this.Pluralizers.Add(locale.Trim(), pluralizer);
         }
 
         #endregion
