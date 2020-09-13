@@ -25,6 +25,7 @@ namespace Jeffijoe.MessageFormat.Formatting
             this.Add(new VariableFormatter());
             this.Add(new SelectFormatter());
             this.Add(new PluralFormatter());
+            this.Add(new NumberFormatter());
         }
 
         #endregion
