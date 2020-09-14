@@ -271,6 +271,9 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
         {
             AddPluralizer(n => n == 1 ? "one" : "other", "ast ca de en et fi fy gl ia io it ji lij nl pt_PT sc scn sv sw ur yi");
 
+            // this one is currently technically the same as above, since it currently doesn't distinguish between how many decimal points are actually printed out
+            AddPluralizer(n => n == 1 ? "one" : "other", "af an asa az bem bez bg brx ce cgg chr ckb dv ee el eo es eu fo fur gsw ha haw hu jgo jmc ka kaj kcg kk kkj kl ks ksb ku ky lb lg mas mgo ml mn mr nah nb nd ne nn nnh no nr ny nyn om or os pap ps rm rof rwk saq sd sdh seh sn so sq ss ssy st syr ta te teo tig tk tn tr ts ug uz ve vo vun wae xh xog");
+
             AddPluralizer(n => "other", "bm bo dz id ig ii in ja jbo jv jw kde kea km ko lkt lo ms my nqo osa root sah ses sg su th to vi wo yo yue zh");
 
             AddPluralizer(n =>
