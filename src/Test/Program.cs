@@ -1,4 +1,5 @@
 ﻿using Jeffijoe.MessageFormat;
+using Jeffijoe.MessageFormat.Helpers;
 using System;
 using System.Collections.Generic;
 
@@ -8,16 +9,37 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            Console.WriteLine(PluralizerHelper.ComputePluralOperands("", "1", 0));
+            Console.WriteLine(PluralizerHelper.ComputePluralOperands("", "1.0", 0));
+            Console.WriteLine(PluralizerHelper.ComputePluralOperands("", "1.00", 0));
+            Console.WriteLine(PluralizerHelper.ComputePluralOperands("", "1.3", 0));
+            Console.WriteLine(PluralizerHelper.ComputePluralOperands("", "1.30", 0));
+            Console.WriteLine(PluralizerHelper.ComputePluralOperands("", "1.03", 0));
+            Console.WriteLine(PluralizerHelper.ComputePluralOperands("", "1.230", 0));
+
             var mf = new MessageFormatter();
 
-            var str = "Percetange {n, number,  percent   }";
+            var str = "Test {n, plural, one {# item} other {# items}}";
 
-            var formatted = mf.FormatMessage(str, new Dictionary<string, object>()
+            Console.WriteLine(mf.FormatMessage(str, new Dictionary<string, object>()
             {
-                {  "n", 0.8 }
-            });
+                {  "n", "1" }
+            }));
 
-            Console.WriteLine(formatted);
+            Console.WriteLine(mf.FormatMessage(str, new Dictionary<string, object>()
+            {
+                {  "n", "1,0" }
+            }));
+
+            Console.WriteLine(mf.FormatMessage(str, new Dictionary<string, object>()
+            {
+                {  "n", "1,1" }
+            }));
+
+            Console.WriteLine(mf.FormatMessage(str, new Dictionary<string, object>()
+            {
+                {  "n", 1.0 }
+            }));
         }
     }
 }

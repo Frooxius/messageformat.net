@@ -582,20 +582,20 @@ namespace Jeffijoe.MessageFormat.Tests
 
             {
                 var mf = new MessageFormatter(true, "en");
-                mf.Pluralizers["en"] = n => {
+                mf.Pluralizers["en"] = o => {
                     // ´n´ is the number being pluralized.
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    if (n == 0)
+                    if (o.n == 0)
                     {
                         return "zero";
                     }
 
-                    if (n == 1)
+                    if (o.n == 1)
                     {
                         return "one";
                     }
 
-                    if (n > 1000)
+                    if (o.n > 1000)
                     {
                         return "thatsalot";
                     }

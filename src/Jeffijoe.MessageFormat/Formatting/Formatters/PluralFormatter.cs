@@ -3,10 +3,13 @@
 // Author: Jeff Hansen <jeff@jeffijoe.com>
 // Copyright (C) Jeff Hansen 2014. All rights reserved.
 
+using Jeffijoe.MessageFormat.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Jeffijoe.MessageFormat.Formatting.Formatters
@@ -88,15 +91,16 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
         {
             var arguments = this.ParseArguments(request);
             double offset = 0;
-            var offsetExtension = arguments.Extensions.FirstOrDefault(x => x.Extension == "offset");
-            if (offsetExtension != null)
-            {
-                offset = Convert.ToDouble(offsetExtension.Value);
-            }
 
-            var n = Convert.ToDouble(value);
-            var pluralized = new StringBuilder(this.Pluralize(locale, arguments, n, offset));
-            var result = this.ReplaceNumberLiterals(pluralized, n - offset);
+            var offsetExtension = arguments.Extensions.FirstOrDefault(x => x.Extension == "offset");
+
+            if (offsetExtension != null)
+                offset = Convert.ToDouble(offsetExtension.Value);
+
+            var operands = PluralizerHelper.ComputePluralOperands(locale, value, offset);
+
+            var pluralized = new StringBuilder(this.Pluralize(locale, arguments, operands));
+            var result = this.ReplaceNumberLiterals(pluralized, operands.ReconstructWithOffset());
             var formatted = messageFormatter.FormatMessage(result, args);
             return formatted;
         }
@@ -128,15 +132,12 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
         /// </exception>
         [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1126:PrefixCallsCorrectly",
             Justification = "Reviewed. Suppression is OK here.")]
-        internal string Pluralize(string locale, ParsedArguments arguments, double n, double offset)
+        internal string Pluralize(string locale, ParsedArguments arguments, PluralOperands operands)
         {
-            Pluralizer pluralizer;
-            if (this.Pluralizers.TryGetValue(locale, out pluralizer) == false)
-            {
+            if (!this.Pluralizers.TryGetValue(locale, out Pluralizer pluralizer))
                 pluralizer = this.Pluralizers["en"];
-            }
 
-            var pluralForm = pluralizer(n - offset);
+            var pluralForm = pluralizer(operands);
             KeyedBlock other = null;
             foreach (var keyedBlock in arguments.KeyedBlocks)
             {
@@ -150,7 +151,7 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
                     var numberLiteral = Convert.ToDouble(keyedBlock.Key.Substring(1));
 
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    if (numberLiteral == n)
+                    if (numberLiteral == operands.originalNumber)
                     {
                         return keyedBlock.BlockText;
                     }
@@ -182,7 +183,7 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
         /// <returns>
         ///     The <see cref="string" />.
         /// </returns>
-        internal string ReplaceNumberLiterals(StringBuilder pluralized, double n)
+        internal string ReplaceNumberLiterals(StringBuilder pluralized, string n)
         {
             // I've done this a few times now..
             const char OpenBrace = '{';
@@ -269,37 +270,60 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
         /// </summary>
         private void AddStandardPluralizers()
         {
-            AddPluralizer(n => n == 1 ? "one" : "other", "ast ca de en et fi fy gl ia io it ji lij nl pt_PT sc scn sv sw ur yi");
+            // Implementations based on https://github.com/unicode-org/cldr/blob/master/common/supplemental/plurals.xml
 
-            // this one is currently technically the same as above, since it currently doesn't distinguish between how many decimal points are actually printed out
-            AddPluralizer(n => n == 1 ? "one" : "other", "af an asa az bem bez bg brx ce cgg chr ckb dv ee el eo es eu fo fur gsw ha haw hu jgo jmc ka kaj kcg kk kkj kl ks ksb ku ky lb lg mas mgo ml mn mr nah nb nd ne nn nnh no nr ny nyn om or os pap ps rm rof rwk saq sd sdh seh sn so sq ss ssy st syr ta te teo tig tk tn tr ts ug uz ve vo vun wae xh xog");
+            AddPluralizer(o => "other", "bm bo dz id ig ii in ja jbo jv jw kde kea km ko lkt lo ms my nqo osa root sah ses sg su th to vi wo yo yue zh");
 
-            AddPluralizer(n => "other", "bm bo dz id ig ii in ja jbo jv jw kde kea km ko lkt lo ms my nqo osa root sah ses sg su th to vi wo yo yue zh");
+            AddPluralizer(o => (o.i == 1 && o.v == 0) ? "one" : "other", "ast ca de en et fi fy gl ia io it ji lij nl pt_PT sc scn sv sw ur yi");
 
-            AddPluralizer(n =>
+            AddPluralizer(o => o.n == 1 ? "one" : "other", "af an asa az bem bez bg brx ce cgg chr ckb dv ee el eo es eu fo fur gsw ha haw hu jgo jmc ka kaj kcg kk kkj kl ks ksb ku ky lb lg mas mgo ml mn mr nah nb nd ne nn nnh no nr ny nyn om or os pap ps rm rof rwk saq sd sdh seh sn so sq ss ssy st syr ta te teo tig tk tn tr ts ug uz ve vo vun wae xh xog");
+
+            AddPluralizer(o =>
             {
-                var i = (int)n;
-
-                var frac = (n - i);
-
-                if (frac > 1e-8)
-                    return "many";
-
-                if (i == 1)
+                if (o.i == 1 && o.v == 0)
                     return "one";
 
-                if (i >= 2 && i <= 4)
+                if (o.i >= 2 && o.i <= 4 && o.v == 0)
                     return "few";
+
+                if (o.v != 0)
+                    return "many";
 
                 return "other";
 
             }, "cs sk");
+
+            AddPluralizer(o =>
+            {
+                if ((o.t == "0" && o.i % 10 == 1 && o.i % 100 != 11) || o.t != "0")
+                    return "one";
+
+                return "other";
+
+            }, "is");
+
+            AddPluralizer(o =>
+            {
+                var mod10 = o.i % 10;
+                var mod100 = o.i % 100;
+
+                if (o.v == 0 && mod10 == 1 && mod100 != 11)
+                    return "one";
+
+                if (o.v == 0 && mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14))
+                    return "few";
+
+                if ((o.v == 0 && mod10 == 0) || (o.v == 0 && mod10 >= 5 && mod10 <= 9) || (o.v == 0 && mod100 >= 11 && mod10 <= 14))
+                    return "many";
+
+                return "other";
+            }, "ru uk");
         }
 
         void AddPluralizer(Pluralizer pluralizer, string locales)
         {
-            foreach(var locale in locales.Split(' '))
-                if(!string.IsNullOrWhiteSpace(locale))
+            foreach (var locale in locales.Split(' '))
+                if (!string.IsNullOrWhiteSpace(locale))
                     this.Pluralizers.Add(locale.Trim(), pluralizer);
         }
 

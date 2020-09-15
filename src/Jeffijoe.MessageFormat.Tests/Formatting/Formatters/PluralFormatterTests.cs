@@ -10,6 +10,7 @@ using System.Text;
 
 using Jeffijoe.MessageFormat.Formatting;
 using Jeffijoe.MessageFormat.Formatting.Formatters;
+using Jeffijoe.MessageFormat.Helpers;
 using Jeffijoe.MessageFormat.Parsing;
 
 using Xunit;
@@ -50,7 +51,8 @@ namespace Jeffijoe.MessageFormat.Tests.Formatting.Formatters
                     },
                     new FormatterExtension[0]);
             var request = new FormatterRequest(new Literal(1, 1, 1, 1, new StringBuilder()), "test", "plural", null);
-            var actual = subject.Pluralize("en", arguments, Convert.ToDouble(args[request.Variable]), 0);
+            var operands = PluralizerHelper.ComputePluralOperands("", args[request.Variable], 0);
+            var actual = subject.Pluralize("en", arguments, operands);
             Assert.Equal(expected, actual);
         }
 
@@ -71,7 +73,7 @@ namespace Jeffijoe.MessageFormat.Tests.Formatting.Formatters
         public void ReplaceNumberLiterals(string input, string expected)
         {
             var subject = new PluralFormatter();
-            var actual = subject.ReplaceNumberLiterals(new StringBuilder(input), 1337);
+            var actual = subject.ReplaceNumberLiterals(new StringBuilder(input), 1337.ToString());
             Assert.Equal(expected, actual);
         }
 
