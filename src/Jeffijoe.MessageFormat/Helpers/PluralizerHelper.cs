@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Jeffijoe.MessageFormat.Helpers;
 using System.Text;
 
 namespace Jeffijoe.MessageFormat.Helpers
@@ -15,7 +16,7 @@ namespace Jeffijoe.MessageFormat.Helpers
 
             operands.originalString = numberString;
 
-            operands.culture = CultureInfo.GetCultureInfo(locale);
+            operands.culture = CultureCache.GetCultureInfo(locale);
             var separator = operands.culture.NumberFormat.NumberDecimalSeparator;
 
             int index = -1;
