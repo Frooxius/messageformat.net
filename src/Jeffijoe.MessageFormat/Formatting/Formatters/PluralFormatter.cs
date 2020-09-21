@@ -317,6 +317,17 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
 
                 return "other";
             }, "ru uk");
+
+            AddPluralizer(o =>
+            {
+                if (o.i == 0 || o.i == 1)
+                    return "one";
+
+                if (o.e == 0 && o.i != 0 && o.i % 1000000 == 0 && o.v == 0 || !(o.e >= 0 && o.e <= 5))
+                    return "many";
+
+                return "other";
+            }, "fr");
         }
 
         void AddPluralizer(Pluralizer pluralizer, string locales)

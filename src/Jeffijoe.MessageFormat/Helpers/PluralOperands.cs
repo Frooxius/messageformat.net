@@ -14,6 +14,7 @@ namespace Jeffijoe.MessageFormat.Helpers
         public int w;    // number of visible fraction digits in n, without trailing zeros.
         public string f; // visible fractional digits in n, with trailing zeros.
         public string t; // visible fractional digits in n, without trailing zeros.
+        public int e; // Could not find documentation, but seems to be the scientific notation value
 
         // Extra parameters
         public string originalString;

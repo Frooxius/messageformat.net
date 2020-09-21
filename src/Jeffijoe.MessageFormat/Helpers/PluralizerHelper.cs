@@ -40,6 +40,14 @@ namespace Jeffijoe.MessageFormat.Helpers
             else
                 operands.n = 0;
 
+            var eIndex = numberString.IndexOf("e", StringComparison.OrdinalIgnoreCase);
+
+            if(eIndex >= 0)
+            {
+                var eSubstr = numberString.Substring(eIndex + 1);
+                int.TryParse(numberString, NumberStyles.Any, operands.culture, out operands.e);
+            }
+
             operands.originalNumber = operands.n;
             operands.offset = offset;
 
