@@ -282,7 +282,7 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
                 if (o.i == 1 && o.v == 0)
                     return "one";
 
-                if (o.i >= 2 && o.i <= 4 && o.v == 0)
+                if (IsInRange(o.i, 2, 4) && o.v == 0)
                     return "few";
 
                 if (o.v != 0)
@@ -291,6 +291,26 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
                 return "other";
 
             }, "cs sk");
+
+            AddPluralizer(o =>
+            {
+                if (o.i == 1 && o.v == 0)
+                    return "one";
+
+                var mod10 = o.i % 10;
+                var mod100 = o.i % 100;
+
+                if (o.v == 0 && IsInRange(mod10, 2, 4) && !IsInRange(mod100, 12, 14))
+                    return "few";
+
+                if ((o.v == 0 && o.i != 1 && IsInRange(mod10, 0, 1))
+                    || (o.v == 0 && IsInRange(mod10, 5, 9))
+                    || (o.v == 0 && IsInRange(mod100, 12, 14)))
+                    return "many";
+
+                return "other";
+
+            }, "pl");
 
             AddPluralizer(o =>
             {
@@ -309,13 +329,14 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
                 if (o.v == 0 && mod10 == 1 && mod100 != 11)
                     return "one";
 
-                if (o.v == 0 && mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14))
+                if (o.v == 0 && IsInRange(mod10, 2, 4) && !IsInRange(mod100, 12, 14))
                     return "few";
 
-                if ((o.v == 0 && mod10 == 0) || (o.v == 0 && mod10 >= 5 && mod10 <= 9) || (o.v == 0 && mod100 >= 11 && mod10 <= 14))
+                if ((o.v == 0 && mod10 == 0) || (o.v == 0 && IsInRange(mod10, 5, 9)) || (o.v == 0 && IsInRange(mod100, 11, 14)))
                     return "many";
 
                 return "other";
+
             }, "ru uk");
 
             AddPluralizer(o =>
@@ -323,12 +344,14 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
                 if (o.i == 0 || o.i == 1)
                     return "one";
 
-                if (o.e == 0 && o.i != 0 && o.i % 1000000 == 0 && o.v == 0 || !(o.e >= 0 && o.e <= 5))
+                if (o.e == 0 && o.i != 0 && o.i % 1000000 == 0 && o.v == 0 || !IsInRange(o.e, 0, 5))
                     return "many";
 
                 return "other";
             }, "fr");
         }
+
+        static bool IsInRange(int n, int min, int max) => n >= min && n <= max;
 
         void AddPluralizer(Pluralizer pluralizer, string locales)
         {
