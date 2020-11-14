@@ -349,6 +349,19 @@ namespace Jeffijoe.MessageFormat.Formatting.Formatters
 
                 return "other";
             }, "fr");
+
+            AddPluralizer(o =>
+            {
+                switch(o.n)
+                {
+                    case 0: return "zero";
+                    case 1: return "one";
+                    case 2: return "two";
+                    case 3: return "few";
+                    case 6: return "many";
+                    default: return "other";
+                }
+            }, "cy");
         }
 
         static bool IsInRange(int n, int min, int max) => n >= min && n <= max;
